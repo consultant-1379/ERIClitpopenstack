@@ -1,0 +1,10 @@
+runLitpScript heat.atbase
+
+# Only one subnet per network is supported.
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/stack1/networks/net1 -t tenant-network -o name=litp
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/stack1/networks/net1/subnets/1010 -t tenant-network-subnet -o name=litp cidr=10.10.0.0/24 ip_version=4 enable_dhcp=true
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/stack1/routers/router1 -t tenant-router -o name=litp_router network_name=litp
+
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/stack1/instances/instance1 -t tenant-instance -o instance_name="instance1" flavor="m1.small" image_name='centos7-cfn' key_name='litp'
+litp create -t instance-network -p  /deployments/site1/clusters/cloud1/tenants/litp/stacks/stack1/instances/instance1/networks/litp -o network_name="litp"
+litp create_plan

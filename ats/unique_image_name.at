@@ -1,0 +1,7 @@
+litp create -p /software/images/vm_image1 -t tenant-image -o name='cirros32' path='file:///tmp/cirros-0.3.2-x86_64-disk.img'
+litp create -p /software/images/vm_image2 -t tenant-image -o name='cirros32' path='file:///tmp/cirros-0.3.2-x86_64-disk.img'
+
+
+#litp create_plan
+assertError --err_type ValidationError --err_property name create_plan
+#litp run_plan

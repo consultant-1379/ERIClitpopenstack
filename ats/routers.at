@@ -1,0 +1,12 @@
+runLitpScript heat.atbase
+
+
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/stack1/networks/net1 -t tenant-network -o name="litp"
+
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/stack1/networks/net1/subnets/subnet1 -t tenant-network-subnet -o name="litp" cidr="10.10.0.0/24" ip_version="4" enable_dhcp="true"
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/stack1/routers/router1 -t tenant-router -o name=router1 network_name=litp public_network=notpublic
+
+
+litp create_plan
+
+assertCallbackTask __callback__ /deployments/site1/clusters/cloud1/tenants/litp/stacks/stack1

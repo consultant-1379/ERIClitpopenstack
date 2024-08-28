@@ -1,0 +1,12 @@
+# Create invalid security group configuration
+litp create -p /deployments/site1 -t deployment
+litp create -p /deployments/site1/clusters/cloud1 -t tenant-cluster -o provider_name="openstack1"
+
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp -t cloud-tenant -o name="litp"
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/litp -t tenant-stack
+
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/litp/security_groups/custom -t tenant-security-group -o name=custom description="the custom security group"
+
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/litp/security_groups/custom/rules/rule1 -t tenant-security-group-rule -o direction=ingress protocol=tcp port_range_min=443 port_range_max=80 remote_ip_prefix="0.0.0.0/0"
+
+assertError --err_type ValidationError --err_message "Security group rule \"rule1\" has an invalid port range. Minimum port must be smaller or equal to maximum port." create_plan

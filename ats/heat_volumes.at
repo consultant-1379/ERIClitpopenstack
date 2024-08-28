@@ -1,0 +1,26 @@
+litp create -p /infrastructure/system_providers/openstack1 -t openstack-provider -o name="openstack1" auth_url="http://192.168.255.199:35357/v2.0"
+
+litp create -p /deployments/site1 -t deployment
+litp create -p /deployments/site1/clusters/cloud1 -t tenant-cluster -o provider_name="openstack1"
+
+# We don't create these tenants/users.
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp -t cloud-tenant -o name="keith"
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp/users/litp -t tenant-user -o name="keith" password_key=keith
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/stack1 -t tenant-stack
+
+# Only one subnet per network is supported.
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/stack1/networks/litp -t tenant-network -o name="litp"
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/stack1/networks/litp/subnets/litp -t tenant-network-subnet -o name="litp" cidr="10.10.0.0/24" ip_version="4" enable_dhcp="true"
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/stack1/routers/router1 -t tenant-router -o name="litp" network_name="litp"
+
+#Create volumes
+litp create -t tenant-volume -p /deployments/site1/clusters/cloud1/tenants/litp/volumes/volume1 -o name="test" size="1"
+
+# Create instances
+litp create -t tenant-instance -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/stack1/instances/instance1 -o instance_name="instance" image_name="cirros" flavor="m1.small" key_name="litp"
+litp create -t instance-network -p  /deployments/site1/clusters/cloud1/tenants/litp/stacks/stack1/instances/instance1/networks/litp -o network_name="litp" floating_ip_pool="public"
+
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/stack1/instances/instance1/volumes/volume1 -t tenant-volume -o name="test" device_name="vdb"
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/stack1/instances/instance1/volumes/volume2 -t tenant-volume -o size="1" device_name="vdc"
+
+litp create_plan

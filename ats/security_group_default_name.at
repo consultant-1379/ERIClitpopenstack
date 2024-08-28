@@ -1,0 +1,10 @@
+# Create invalid security group configuration
+litp create -p /deployments/site1 -t deployment
+litp create -p /deployments/site1/clusters/cloud1 -t tenant-cluster -o provider_name="openstack1"
+
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp -t cloud-tenant -o name="litp"
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/litp -t tenant-stack
+
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/litp/security_groups/custom -t tenant-security-group -o name=default description="the custom security group"
+
+assertError --err_type ValidationError --err_message "The security group named \"default\" must not be used." create_plan

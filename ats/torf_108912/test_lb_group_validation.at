@@ -1,0 +1,23 @@
+runLitpScript ../heat.atbase
+
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/stack1/routers/router1 -t tenant-router -o name="litp" network_name="litp"
+
+# Create instances
+litp create -t tenant-instance -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/stack1/instances/cirros -o instance_name="cirros_instance" image_name="cirros32" flavor="m1.tiny" key_name="cloud"
+litp create -t instance-network -p  /deployments/site1/clusters/cloud1/tenants/litp/stacks/stack1/instances/cirros/networks/litp -o network_name="litp" floating_ip_pool="public"
+
+# LB Group without instance and lb:
+litp create -t tenant-instance-lb-group -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/stack1/instance_lb_groups/lb_group -o group_name="lb_group" max="2" min="1" depends_on="cirros_instance"
+
+let __err_1 --err_type CardinalityError --err_message 'This collection requires a minimum of 1 items not marked for removal' --err_vpath /deployments/site1/clusters/cloud1/tenants/litp/stacks/stack1/instance_lb_groups/lb_group/loadbalancers
+let __err_2 --err_type ValidationError --err_message 'The property "instance" of the instance group "lb_group" is not defined' --err_vpath /deployments/site1/clusters/cloud1/tenants/litp/stacks/stack1/instance_lb_groups/lb_group
+
+assertError __err_1 __err_2 --errors_length 2 create_plan
+
+# Create instance and lb for LB Group
+litp create -t tenant-instance -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/stack1/instance_lb_groups/lb_group/instance -o instance_name="lb_inst_grp1" image_name="cirros32" flavor="m1.tiny" key_name="cloud"
+litp create -t instance-network -p  /deployments/site1/clusters/cloud1/tenants/litp/stacks/stack1/instance_lb_groups/lb_group/instance/networks/litp -o network_name="litp"
+litp create -t tenant-lb -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/stack1/instance_lb_groups/lb_group/loadbalancers/lb -o vip_floating_ip_pool=PUBLIC monitors='monitor1' name='lb1' network_name='litp'
+litp create -t tenant-lb-monitor -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/stack1/lb_monitors/monitor1 -o name='monitor1'
+
+litp create_plan

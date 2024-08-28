@@ -1,0 +1,8 @@
+runLitpScript heat.atbase
+
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/stack1/instances/instance1 -t tenant-instance -o instance_name="instance1" flavor="small" image_name='image_01' key_name='litp'
+litp create -p  /deployments/site1/clusters/cloud1/tenants/litp/stacks/stack1/instances/instance1/networks/litp -t instance-network -o network_name="litp"
+
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/stack1/instances/instance1/volumes/volume1 -t tenant-volume -o size="100" device_name="vdb"
+
+litp create_plan

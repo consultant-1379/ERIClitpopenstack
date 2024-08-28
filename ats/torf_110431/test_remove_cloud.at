@@ -1,0 +1,8 @@
+runLitpScript ../heat.atbase
+
+litp create_plan
+failCallbackTask __callback__ /deployments/site1/clusters/cloud1/tenants/litp/stacks/stack1
+litp run_plan
+
+litp remove -p /deployments/site1
+litp create_plan

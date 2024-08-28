@@ -1,0 +1,41 @@
+litp create -p /software/images/vm_image1 -t tenant-image -o name='cirros32' path='file:///tmp/cirros-0.3.2-x86_64-disk.img'
+
+litp create -p /infrastructure/system_providers/openstack1 -t openstack-provider -o name="openstack1" auth_url="http://10.44.235.36/identity/v2.0/"
+litp create -p /deployments/site1 -t deployment
+litp create -p /deployments/site1/clusters/cloud1 -t tenant-cluster -o provider_name="openstack1"
+
+# We don't create these tenants/users.
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp -t cloud-tenant -o name="luis"
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp/users/litp -t tenant-user -o name="luis" password_key="luis"
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/buss_stack -t tenant-stack
+
+# Only one subnet per network is supported.
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/buss_stack/networks/buss_net -t tenant-network -o name="buss_net"
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/buss_stack/networks/buss_net/subnets/subnet1 -t tenant-network-subnet -o cidr="10.10.0.0/24" ip_version="4" enable_dhcp="true" name='buss_net'
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/buss_stack/routers/router1 -t tenant-router -o name="buss_router1" network_name="buss_net"
+
+# Create instances
+litp create -t tenant-instance -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/buss_stack/instances/db_instance -o instance_name="db_instance" image_name="cirros32" flavor="m1.tiny" key_name="cloud"
+litp create -t instance-network -p  /deployments/site1/clusters/cloud1/tenants/litp/stacks/buss_stack/instances/db_instance/networks/buss_net -o network_name="buss_net"
+
+# Configure monitors:
+litp create -t tenant-lb-monitor -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/buss_stack/lb_monitors/monitor2 -o name='monitor2' type="ping" delay="200" max_retries="1" timeout="18"
+litp create -t tenant-lb-monitor -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/buss_stack/lb_monitors/monitor1 -o name='monitor1'
+
+# Instance VMM001 with LB:
+litp create -t tenant-instance-lb-group -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/buss_stack/instance_lb_groups/lb_buss_1 -o group_name="buss_1" max="3" min="1"
+litp create -t tenant-instance -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/buss_stack/instance_lb_groups/lb_buss_1/instance -o instance_name="VMM001" image_name="cirros32" flavor="m1.tiny" key_name="cloud"
+litp create -t instance-network -p  /deployments/site1/clusters/cloud1/tenants/litp/stacks/buss_stack/instance_lb_groups/lb_buss_1/instance/networks/buss_net -o network_name="buss_net"
+
+litp create -t tenant-lb -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/buss_stack/instance_lb_groups/lb_buss_1/loadbalancers/lb -o name="lb_001" protocol="http" lb_method="round_robin" network_name="buss_net" vip_port="80" vip_floating_ip_pool="public" member_port="8000" monitors='monitor1,monitor2'
+
+# Instance VMM002 with LB:
+litp create -t tenant-instance-lb-group -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/buss_stack/instance_lb_groups/lb_buss_2 -o group_name="buss_2" max="3" min="1"
+litp create -t tenant-instance -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/buss_stack/instance_lb_groups/lb_buss_2/instance -o instance_name="VMM002" image_name="cirros32" flavor="m1.tiny" key_name="cloud"
+litp create -t instance-network -p  /deployments/site1/clusters/cloud1/tenants/litp/stacks/buss_stack/instance_lb_groups/lb_buss_2/instance/networks/buss_net -o network_name="buss_net"
+
+litp create -t tenant-lb -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/buss_stack/instance_lb_groups/lb_buss_2/loadbalancers/lb -o name="lb_002" protocol="http" lb_method="round_robin" network_name="buss_net" vip_port="8080" vip_floating_ip_pool="public" member_port="8080" monitors='monitor1'
+
+litp create_plan
+litp run_plan
+

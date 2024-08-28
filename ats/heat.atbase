@@ -1,0 +1,16 @@
+litp create -p /software/images/vm_image1 -t tenant-image -o name='centos7-cfn' path='file:////tmp/cirros-0.3.2-x86_64-disk.img'
+
+litp create -p /infrastructure/system_providers/openstack1 -t openstack-provider -o name='openstack1' auth_url='172.19.29.123'
+
+litp create -p /deployments/site1 -t deployment
+
+litp create -p /deployments/site1/clusters/cloud1 -t tenant-cluster -o provider_name='openstack1'
+
+# We don't create these tenants/users.
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp -t cloud-tenant -o name=litp
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp/users/litp -t tenant-user -o name=litp password_key=litp
+
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/stack1 -t tenant-stack
+
+litp create -p  /deployments/site1/clusters/cloud1/tenants/litp/stacks/stack1/networks/litp -t tenant-network -o name="litp"
+litp create -p  /deployments/site1/clusters/cloud1/tenants/litp/stacks/stack1/networks/litp/subnets/litp -t tenant-network-subnet -o name="litp" cidr="10.10.0.0/24" ip_version="4" enable_dhcp="true"

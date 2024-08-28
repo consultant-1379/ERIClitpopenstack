@@ -1,0 +1,64 @@
+add-plugins tenant_yum_repo_mock
+
+litp create -p /deployments/site1 -t deployment
+litp create -p /deployments/site1/clusters/cloud1 -t tenant-cluster -o provider_name='openstack1'
+litp create -p /infrastructure/system_providers/openstack1 -t openstack-provider -o name='openstack1' auth_url='http://10.44.235.36/identity/v2.0/'
+
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp -t cloud-tenant -o name=demo
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp/users/luis -t tenant-user -o name=demo password_key=demo
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/enm_stack -t tenant-stack
+
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/enm_stack/networks/services -t tenant-network -o name='services'
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/enm_stack/networks/services/subnets/services -t tenant-network-subnet -o name='services' cidr=10.0.0.0/24 ip_version=4 enable_dhcp=true
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/enm_stack/networks/internal -t tenant-network -o name='internal'
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/enm_stack/networks/internal/subnets/internal -t tenant-network-subnet -o name='internal' cidr=10.0.1.0/24 ip_version=4 enable_dhcp=true
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/enm_stack/networks/storage -t tenant-network -o name='storage'
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/enm_stack/networks/storage/subnets/storage -t tenant-network-subnet -o name='storage' cidr=10.0.2.0/24 ip_version=4 enable_dhcp=true
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/enm_stack/networks/jgroups -t tenant-network -o name='jgroups'
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/enm_stack/networks/jgroups/subnets/jgroups -t tenant-network-subnet -o name='jgroups' cidr=10.0.3.0/24 ip_version=4 enable_dhcp=true
+
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/enm_stack/routers/router1 -t tenant-router -o name=litp_router1 network_name=services
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/enm_stack/routers/router2 -t tenant-router -o name=litp_router2 network_name=internal
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/enm_stack/routers/router3 -t tenant-router -o name=litp_router3 network_name=storage
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/enm_stack/routers/router4 -t tenant-router -o name=litp_router4 network_name=jgroups
+
+
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/enm_stack/instances/sso -t tenant-instance -o image_name='jboss-image' instance_name='sso' flavor='m1.small' key_name='litp'
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/enm_stack/instances/sso/networks/internal -t instance-network -o network_name='internal'
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/enm_stack/instances/sso/networks/storage -t instance-network -o network_name='storage'
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/enm_stack/instances/sso/networks/jgroups -t instance-network -o network_name='jgroups'
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/enm_stack/instances/sso/packages/sso_sgpkg -t tenant-package -o name=ERICenmsgsso_CXP9031582
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/enm_stack/instances/sso/yumrepos/enm -t tenant-yum-repo -o name='enm' baseurl='http://10.44.196.134/CXP9024257_R3AE08/'
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/enm_stack/instances/sso/yumrepos/OS -t tenant-yum-repo -o name='OS' baseurl='http://10.44.196.134/6/os/x86_64/Packages/'
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/enm_stack/instances/openidm -t tenant-instance -o image_name='lsb-image' instance_name='openidm' flavor='m1.small' key_name='litp'
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/enm_stack/instances/openidm/networks/internal -t instance-network -o network_name='internal'
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/enm_stack/instances/openidm/networks/storage -t instance-network -o network_name='storage'
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/enm_stack/instances/openidm/networks/jgroups -t instance-network -o network_name='jgroups'
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/enm_stack/instances/openidm/packages/openidm_sgpkg -t tenant-package -o name=ERICenmsgopenidm_CXP9031666
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/enm_stack/instances/openidm/yumrepos/enm -t tenant-yum-repo -o name='enm' baseurl='http://10.44.196.134/CXP9024257_R3AE08/'
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/enm_stack/instances/openidm/yumrepos/OS -t tenant-yum-repo -o name='OS' baseurl='http://10.44.196.134/6/os/x86_64/Packages/'
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/enm_stack/instances/httpd -t tenant-instance -o image_name='lsb-image' instance_name='httpd' flavor='m1.small' key_name='litp'
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/enm_stack/instances/httpd/networks/services -t instance-network -o network_name='services'
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/enm_stack/instances/httpd/networks/internal -t instance-network -o network_name='internal'
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/enm_stack/instances/httpd/networks/storage -t instance-network -o network_name='storage'
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/enm_stack/instances/httpd/networks/jgroups -t instance-network -o network_name='jgroups'
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/enm_stack/instances/httpd/packages/httpd_sg -t tenant-package -o name=ERICenmsghttpd_CXP9031596
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/enm_stack/instances/httpd/yumrepos/enm -t tenant-yum-repo -o name='enm' baseurl='http://10.44.196.134/CXP9024257_R3AE08/'
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/enm_stack/instances/httpd/yumrepos/OS -t tenant-yum-repo -o name='OS' baseurl='http://10.44.196.134/6/os/x86_64/Packages/'
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/enm_stack/instances/logstash -t tenant-instance -o image_name='lsb-image' instance_name='logstash' flavor='m1.small' key_name='litp'
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/enm_stack/instances/logstash/networks/internal -t instance-network -o network_name='internal'
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/enm_stack/instances/logstash/networks/storage -t instance-network -o network_name='storage'
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/enm_stack/instances/logstash/networks/jgroups -t instance-network -o network_name='jgroups'
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/enm_stack/instances/logstash/packages/logstash_sgpkg -t tenant-package -o name=ERICenmsglogstash_CXP9031571
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/enm_stack/instances/logstash/yumrepos/enm -t tenant-yum-repo -o name='enm' baseurl='http://10.44.196.134/CXP9024257_R3AE08/'
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/enm_stack/instances/logstash/yumrepos/OS -t tenant-yum-repo -o name='OS' baseurl='http://10.44.196.134/6/os/x86_64/Packages/'
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/enm_stack/instances/visinamingnb -t tenant-instance -o image_name='lsb-image' instance_name='visinamingnb' flavor='m1.small' key_name='litp'
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/enm_stack/instances/visinamingnb/networks/storage -t instance-network -o network_name='storage'
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/enm_stack/instances/visinamingnb/networks/internal -t instance-network -o network_name='internal'
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/enm_stack/instances/visinamingnb/networks/jgroups -t instance-network -o network_name='jgroups'
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/enm_stack/instances/visinamingnb/networks/services -t instance-network -o network_name='services'
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/enm_stack/instances/visinamingnb/packages/visinamingnb_pkg -t tenant-package -o name=ERICenmsgvisinamingnb_CXP9031663
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/enm_stack/instances/visinamingnb/yumrepos/enm -t tenant-yum-repo -o name='enm' baseurl='http://10.44.196.134/CXP9024257_R3AE08/'
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/enm_stack/instances/visinamingnb/yumrepos/OS -t tenant-yum-repo -o name='OS' baseurl='http://10.44.196.134/6/os/x86_64/Packages/'
+
+litp create_plan

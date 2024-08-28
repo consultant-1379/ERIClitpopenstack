@@ -1,0 +1,26 @@
+litp create -p /software/images/vm_image1 -t tenant-image -o name='cirros32' path='file:///tmp/cirros-0.3.2-x86_64-disk.img'
+
+litp create -p /infrastructure/system_providers/openstack1 -t openstack-provider -o name='openstack1' auth_url='http://172.15.0.1:5000/v2.0/'
+litp create -p /deployments/site1 -t deployment
+litp create -p /deployments/site1/clusters/cloud1 -t tenant-cluster -o provider_name='openstack1'
+
+# We don't create these tenants/users.
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp -t cloud-tenant -o name=igor
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp/users/litp -t tenant-user -o name=igor password_key=igor
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/stack1 -t tenant-stack
+
+
+# Single subnet per network is supported.
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/stack1/networks/net1 -t tenant-network -o name=litp
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/stack1/networks/net1/subnets/1010 -t tenant-network-subnet -o name=litp cidr=10.0.0.0/24 ip_version=4 enable_dhcp=true
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/stack1/routers/router1 -t tenant-router -o name=litp_router network_name=litp
+
+litp create_plan
+
+# NEG network not present:
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/stack1/instances/instance1 -t tenant-instance -o instance_name="instance1" flavor="m1.small" image_name='cirros32' key_name="litp"
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/stack1/instances/instance1/networks/net1 -t instance-network -o network_name=liiiiittp floating_ip_pool=AMMEON_NET
+assertError --err_message 'Create plan failed: Instance cannot be created, network "liiiiittp" must be present' create_plan
+# fix:
+litp update -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/stack1/instances/instance1/networks/net1 -o network_name=litp
+litp create_plan

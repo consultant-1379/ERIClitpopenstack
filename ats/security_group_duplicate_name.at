@@ -1,0 +1,12 @@
+# Create invalid security group configuration
+litp create -p /deployments/site1 -t deployment
+litp create -p /deployments/site1/clusters/cloud1 -t tenant-cluster -o provider_name="openstack1"
+
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp -t cloud-tenant -o name="litp"
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/litp -t tenant-stack
+
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/litp/security_groups/custom -t tenant-security-group -o name=custom description="the custom security group"
+
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/litp/security_groups/custom1 -t tenant-security-group -o name=custom description="another custom security group"
+
+assertError --err_type ValidationError --err_message "The security group \"custom\" is duplicated within the tenant stack \"litp\". All security group names associated with tenant must be unique." create_plan

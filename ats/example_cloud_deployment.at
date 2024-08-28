@@ -1,0 +1,30 @@
+# image file must exist at the specified location
+#litp create -p /software/items/vm_image1 -t tenant-image -o name='image_01' path='/tmp/cirros-0.3.2-x86_64-disk.img'
+
+litp create -p /infrastructure/system_providers/openstack1 -t openstack-provider -o name='openstack1' auth_url='127.0.0.1'
+
+litp create -p /deployments/site1 -t deployment
+litp create -p /deployments/site1/clusters/cloud1 -t tenant-cluster -o provider_name='openstack1'
+
+# We don't create these tenants/users.
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp -t cloud-tenant -o name=litp
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp/users/litp -t tenant-user -o name=litp password_key=litp
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/stack1 -t tenant-stack
+
+
+# Import local key
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/stack1/keypairs/litpadmin -t tenant-keypair -o name=litp public_key='ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEA6oiPy3K7mAdmGxG0d4OkfsTEByOCrITEW0JfT1QlfGw6ay4zRD/czKTVInp5I/meNtQ0HUE3dNH7CaJfXSYADaJkmSJ7zo5HJDz0ALbWugftAygQDCbj+EEgYNB7ia2OtPo7oJSQanlnS7vA7GIqryVU6IFXjpuNREvU+knUvnekHLag9KzhV02OAMiSQrEPyWGrPALlieyjnjU2gzlKoo0ATkBJVde056P7BpQIjsPpvcD07CS5TmhypZcvaGPXfNjxAOcbCrxR54gk6JT0jJZXG4UkR7oN1d18Jt85XOGPuK9lndYvDlIwl0POBq03eajJ9IYrZNWL71AzC81111== igor@CHD'
+
+assertError create -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/stack1/keypairs/litpadmin -t tenant-keypair -o name=litp_bad
+
+
+# Single subnet per network is supported.
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/stack1/networks/net1 -t tenant-network -o name=litp
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/stack1/networks/net1/subnets/10_24 -t tenant-network-subnet -o name=litp cidr=10.0.0.0/24 ip_version=4 enable_dhcp=true
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/stack1/routers/router1 -t tenant-router -o name=litp_router network_name=litp
+
+# But we can have many networks
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/stack1/networks/net2 -t tenant-network -o name=litp2
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/stack1/networks/net2/subnets/11_24 -t tenant-network-subnet -o name=litp2 cidr=11.0.0.0/24 ip_version=4 enable_dhcp=true
+
+litp create_plan

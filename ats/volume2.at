@@ -1,0 +1,24 @@
+# image file must exist at the specified location
+litp create -p /deployments/site1 -t deployment
+litp create -p /infrastructure/system_providers/openstack1 -t openstack-provider -o name='openstack1' auth_url='172.19.29.123'
+litp create -p /deployments/site1/clusters/cloud1 -t tenant-cluster -o provider_name='openstack1'
+
+# We don't create these tenants/users.
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp -t cloud-tenant -o name=litp
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp/users/litp -t tenant-user -o name=litp password_key=litp
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/stack1 -t tenant-stack
+litp create -p  /deployments/site1/clusters/cloud1/tenants/litp/stacks/stack1/networks/litp -t tenant-network -o name="litp"
+litp create -p  /deployments/site1/clusters/cloud1/tenants/litp/stacks/stack1/networks/litp/subnets/litp -t tenant-network-subnet -o name="litp" cidr="10.10.0.0/24" ip_version="4" enable_dhcp="true"
+
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/stack1/instances/instance1 -t tenant-instance -o instance_name="instance1" flavor="small" image_name='image_01' key_name='litp'
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/stack1/instances/instance1/networks/litp -t instance-network -o network_name="litp"
+#Should have name property
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp/volumes/volume1 -t tenant-volume -o size="100" name="test"
+
+#Should have name and device_name if attaching already created volume
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/stack1/instances/instance1/volumes/volume1 -t tenant-volume -o name="test" device_name="vdb"
+
+#Should have size and device_name if volume is to be managed by Heat
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/stack1/instances/instance1/volumes/volume4 -t tenant-volume -o size="100" device_name="vdc"
+
+litp create_plan

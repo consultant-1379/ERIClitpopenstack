@@ -1,0 +1,44 @@
+litp create -p /software/images/vm_image1 -t tenant-image -o name='cirros32' path='file:///tmp/cirros-0.3.2-x86_64-disk.img'
+
+litp create -p /infrastructure/system_providers/openstack1 -t openstack-provider -o name="openstack1" auth_url="http://10.44.235.36/identity/v2.0/"
+
+litp create -p /deployments/site1 -t deployment
+litp create -p /deployments/site1/clusters/cloud1 -t tenant-cluster -o provider_name="openstack1"
+
+# We don't create these tenants/users.
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp -t cloud-tenant -o name="luis"
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp/users/litp -t tenant-user -o name="luis" password_key="luis"
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/enm_stack -t tenant-stack
+
+# Only one subnet per network is supported.
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/enm_stack/networks/net1 -t tenant-network -o name="litp"
+#control if ip_version is 4 or 6
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/enm_stack/networks/net1/subnets/subnet1 -t tenant-network-subnet -o name="litp" cidr="10.10.0.0/24" ip_version="4" enable_dhcp="true"
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/enm_stack/routers/router1 -t tenant-router -o name="litp" network_name="litp"
+
+# Create instances
+litp create -t tenant-instance -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/enm_stack/instances/cirros -o instance_name="cirros_instance" image_name="cirros32" flavor="m1.tiny" key_name="cloud"
+litp create -t instance-network -p  /deployments/site1/clusters/cloud1/tenants/litp/stacks/enm_stack/instances/cirros/networks/litp -o network_name="litp" floating_ip_pool="public"
+
+# LB with defaults:
+litp create -t tenant-instance-lb-group -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/enm_stack/instance_lb_groups/lb_group -o group_name="lb_group" max="2" min="1" depends_on="cirros_instance"
+#Control flavor, key(maybe)
+litp create -t tenant-instance -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/enm_stack/instance_lb_groups/lb_group/instance -o instance_name="lb_inst_grp1" image_name="cirros32" flavor="m1.tiny" key_name="cloud"
+litp create -t instance-network -p  /deployments/site1/clusters/cloud1/tenants/litp/stacks/enm_stack/instance_lb_groups/lb_group/instance/networks/litp -o network_name="litp"
+
+litp create -t tenant-lb -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/enm_stack/instance_lb_groups/lb_group/loadbalancers/lb -o vip_floating_ip_pool=PUBLIC monitors='monitor1' name='lb1' network_name='litp'
+
+litp create -t tenant-lb-monitor -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/enm_stack/lb_monitors/monitor1 -o name='monitor1'
+
+
+# LB configured:
+litp create -t tenant-instance-lb-group -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/enm_stack/instance_lb_groups/lb_group_full -o group_name="lb_group" max="2" min="1" depends_on="cirros_instance"
+litp create -t tenant-instance -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/enm_stack/instance_lb_groups/lb_group_full/instance -o instance_name="lb_inst_grp1" image_name="cirros32" flavor="m1.tiny" key_name="cloud"
+litp create -t instance-network -p  /deployments/site1/clusters/cloud1/tenants/litp/stacks/enm_stack/instance_lb_groups/lb_group_full/instance/networks/litp -o network_name="litp"
+
+litp create -t tenant-lb -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/enm_stack/instance_lb_groups/lb_group_full/loadbalancers/lb -o name="nameme" protocol="http" lb_method="round_robin" network_name="litp" vip_port="80" vip_floating_ip_pool="public" member_port="8000" monitors='monitor1,monitor2'
+# Configure monitor:
+litp create -t tenant-lb-monitor -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/enm_stack/lb_monitors/monitor2 -o name='monitor2' type="ping" delay="200" max_retries="1" timeout="18"
+
+#litp create_plan
+#litp run_plan

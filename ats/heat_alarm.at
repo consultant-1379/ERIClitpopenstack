@@ -1,0 +1,26 @@
+litp create -t openstack-provider -p /infrastructure/system_providers/openstack1 -o name="openstack1" auth_url="http://10.44.235.36/identity/v2.0/"
+
+litp create -t deployment -p /deployments/site1
+litp create -t tenant-cluster -p /deployments/site1/clusters/cloud1 -o provider_name="openstack1"
+
+litp create -t cloud-tenant -p /deployments/site1/clusters/cloud1/tenants/litp -o name="litp"
+litp create -t tenant-user -p /deployments/site1/clusters/cloud1/tenants/litp/users/litp -o name="litp" password_key=litp
+
+litp create -t tenant-stack -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/stack1
+litp create -t tenant-network -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/stack1/networks/net1 -o name=litp
+litp create -t tenant-network-subnet -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/stack1/networks/net1/subnets/1010 -o name=litp cidr=10.10.0.0/24 ip_version=4 enable_dhcp=true
+litp create -t tenant-router -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/stack1/routers/router1 -o name=litp_router network_name=litp
+
+litp create -t tenant-instance-lb-group -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/stack1/instance_lb_groups/lb_group -o group_name="lb_group" max="2" min="1" depends_on="cirros_instance"
+litp create -t tenant-instance -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/stack1/instance_lb_groups/lb_group/instance -o instance_name="lb_inst_grp1" image_name="openstack1" flavor="m1.small" key_name="litp"
+litp create -t instance-network -p  /deployments/site1/clusters/cloud1/tenants/litp/stacks/stack1/instance_lb_groups/lb_group/instance/networks/litp -o network_name="litp"
+
+litp create -t tenant-lb -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/stack1/instance_lb_groups/lb_group/loadbalancers/lb -o name="lb_001" protocol="http" lb_method="round_robin" network_name="litp" vip_port="80" vip_floating_ip_pool="public" member_port="22" monitors='monitor1,monitor2'
+litp create -t tenant-lb -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/stack1/instance_lb_groups/lb_group/loadbalancers/healthlb -o name="lb_002" protocol="http" lb_method="round_robin" network_name="litp" vip_port="12987" member_port="12987" monitors='healthmonitor'
+litp create -t tenant-alarm -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/stack1/instance_lb_groups/lb_group/loadbalancers/healthlb/alarms/alarm1 -o description=alarm_test wait_timeout=800 period=10 evaluation_periods=10
+
+litp create -t tenant-lb-monitor -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/stack1/lb_monitors/monitor1 -o name='monitor1'
+litp create -t tenant-lb-monitor -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/stack1/lb_monitors/monitor2 -o name='monitor2'
+litp create -t tenant-lb-monitor -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/stack1/lb_monitors/healthmonitor -o name='healthmonitor'
+
+litp create_plan

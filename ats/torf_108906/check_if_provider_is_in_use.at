@@ -1,0 +1,10 @@
+# AT to check if the openstack provider is in use before trying to remove it.
+
+runLitpScript ../heat.atbase
+
+litp create_plan
+litp run_plan
+
+litp remove -p /infrastructure/system_providers/openstack1
+
+assertError --err_type ValidationError --err_message 'Create plan failed: Provider: "openstack1" is in use on cluster "/deployments/site1/clusters/cloud1", cannot be removed' create_plan

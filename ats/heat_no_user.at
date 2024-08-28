@@ -1,0 +1,26 @@
+litp create -p /software/images/vm_image1 -t tenant-image -o name='centos7-cfn' path='file:////tmp/cirros-0.3.2-x86_64-disk.img'
+
+litp create -p /infrastructure/system_providers/openstack1 -t openstack-provider -o name='openstack1' auth_url='172.19.29.123'
+
+litp create -p /deployments/site1 -t deployment
+
+litp create -p /deployments/site1/clusters/cloud1 -t tenant-cluster -o provider_name='openstack1'
+
+# We don't create these tenants/users.
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp -t cloud-tenant -o name=litp
+#litp create -p /deployments/site1/clusters/cloud1/tenants/litp/users/litp -t tenant-user -o name=litp password_key=litp
+
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/stack1 -t tenant-stack
+
+litp create -p  /deployments/site1/clusters/cloud1/tenants/litp/stacks/stack1/networks/litp -t tenant-network -o name="litp"
+litp create -p  /deployments/site1/clusters/cloud1/tenants/litp/stacks/stack1/networks/litp/subnets/litp -t tenant-network-subnet -o name="litp" cidr="10.10.0.0/24" ip_version="4" enable_dhcp="true"
+# Only one subnet per network is supported.
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/stack1/networks/net1 -t tenant-network -o name=litp
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/stack1/networks/net1/subnets/1010 -t tenant-network-subnet -o name=litp cidr=10.10.0.0/24 ip_version=4 enable_dhcp=true
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/stack1/routers/router1 -t tenant-router -o name=litp_router network_name=litp
+
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/stack1/instances/instance1 -t tenant-instance -o instance_name="instance1" flavor="m1.small" image_name='centos7-cfn' key_name='litp'
+litp create -t instance-network -p  /deployments/site1/clusters/cloud1/tenants/litp/stacks/stack1/instances/instance1/networks/litp -o network_name="litp"
+#litp create_plan
+#show create_plan
+assertError --err_type ValidationError --err_message "User must be specified for the tenant \"litp\"." create_plan

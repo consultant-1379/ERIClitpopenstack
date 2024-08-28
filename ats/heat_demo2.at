@@ -1,0 +1,20 @@
+litp create -p /infrastructure/system_providers/openstack1 -t openstack-provider -o name="openstack1" auth_url="http://10.44.235.36/identity/v2.0/"
+
+litp create -p /deployments/site1 -t deployment
+litp create -p /deployments/site1/clusters/cloud1 -t tenant-cluster -o provider_name="openstack1"
+
+# We don't create these tenants/users.
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp -t cloud-tenant -o name="litp"
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp/users/litp -t tenant-user -o name="litp" password_key=litp
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/enm_stack -t tenant-stack
+
+# Only one subnet per network is supported.
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/enm_stack/networks/litp -t tenant-network -o name="litp"
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/enm_stack/networks/litp/subnets/litp -t tenant-network-subnet -o name="litp" cidr="10.10.0.0/24" ip_version="4" enable_dhcp="true"
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/enm_stack/routers/router1 -t tenant-router -o name="litp" network_name="litp"
+
+# Create instances
+litp create -t tenant-instance -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/enm_stack/instances/apache -o instance_name="apache" image_name="Fedora-cfn" flavor="m1.small" key_name="litp"
+litp create -t instance-network -p  /deployments/site1/clusters/cloud1/tenants/litp/stacks/enm_stack/instances/apache/networks/litp -o network_name="litp"
+
+litp create_plan

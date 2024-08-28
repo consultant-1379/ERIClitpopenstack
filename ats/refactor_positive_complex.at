@@ -1,0 +1,26 @@
+litp create -p /software/images/vm_image1 -t tenant-image -o name='cirros32' path='file:///tmp/cirros-0.3.2-x86_64-disk.img'
+
+litp create -p /infrastructure/system_providers/openstack1 -t openstack-provider -o name='openstack1' auth_url='http://10.44.235.36/identity/v2.0/'
+litp create -p /deployments/site1 -t deployment
+litp create -p /deployments/site1/clusters/cloud1 -t tenant-cluster -o provider_name='openstack1'
+
+# We don't create these tenants/users.
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp -t cloud-tenant -o name=luis
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp/users/litp -t tenant-user -o name=luis password_key=luis
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/stack1 -t tenant-stack
+
+
+# Single subnet per network is supported.
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/stack1/networks/net1 -t tenant-network -o name=litp
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/stack1/networks/net1/subnets/1010 -t tenant-network-subnet -o name=litp cidr=10.0.0.0/24 ip_version=4 enable_dhcp=true
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/stack1/routers/router1 -t tenant-router -o name=litp_router network_name=litp
+
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/stack1/networks/net2 -t tenant-network -o name=litp2
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/stack1/networks/net2/subnets/1020 -t tenant-network-subnet -o name=litp2 cidr=10.0.20.0/24 ip_version=4 enable_dhcp=true
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/stack1/routers/router2 -t tenant-router -o name=litp_router2 network_name=litp2
+
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/stack1/networks/net3 -t tenant-network -o name=litp3
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/stack1/networks/net3/subnets/1030 -t tenant-network-subnet -o name=litp3 cidr=10.0.30.0/24 ip_version=4 enable_dhcp=true
+litp create -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/stack1/routers/router3 -t tenant-router -o name=litp_router3 network_name=litp3
+
+litp create_plan

@@ -1,0 +1,45 @@
+litp create -t openstack-provider -p /infrastructure/system_providers/openstack1 -o name="openstack1" auth_url="http://10.44.235.36/identity/v2.0/"
+
+litp create -t deployment -p /deployments/site1
+litp create -t tenant-cluster -p /deployments/site1/clusters/cloud1 -o provider_name="openstack1"
+
+litp create -t cloud-tenant -p /deployments/site1/clusters/cloud1/tenants/litp -o name="litp"
+litp create -t tenant-user -p /deployments/site1/clusters/cloud1/tenants/litp/users/litp -o name="litp" password_key=litp
+
+litp create -t tenant-stack -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/stack1
+litp create -t tenant-network -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/stack1/networks/net1 -o name=litp
+litp create -t tenant-network-subnet -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/stack1/networks/net1/subnets/1010 -o name=litp cidr=10.10.0.0/24 ip_version=4 enable_dhcp=true
+litp create -t tenant-router -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/stack1/routers/router1 -o name=litp_router network_name=litp
+
+litp create -t tenant-instance-lb-group -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/stack1/instance_lb_groups/lb_group -o group_name="lb_group" max="2" min="1" depends_on="cirros_instance"
+litp create -t tenant-instance -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/stack1/instance_lb_groups/lb_group/instance -o instance_name="lb_inst_grp1" image_name="openstack1" flavor="m1.small" key_name="litp"
+litp create -t instance-network -p  /deployments/site1/clusters/cloud1/tenants/litp/stacks/stack1/instance_lb_groups/lb_group/instance/networks/litp -o network_name="litp"
+
+litp create -t tenant-lb-monitor -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/stack1/lb_monitors/monitor1 -o name='monitor1'
+litp create -t tenant-lb-monitor -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/stack1/lb_monitors/monitor2 -o name='monitor2'
+litp create -t tenant-lb-monitor -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/stack1/lb_monitors/healthmonitor -o name='healthmonitor'
+
+# Create 2 tenant-lb without alarm and with vip_floating_ip_pool set
+litp create -t tenant-lb -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/stack1/instance_lb_groups/lb_group/loadbalancers/lb -o name="lb_001" protocol="http" lb_method="round_robin" network_name="litp" vip_port="80" vip_floating_ip_pool="public" member_port="22" monitors='monitor1,monitor2'
+litp create -t tenant-lb -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/stack1/instance_lb_groups/lb_group/loadbalancers/healthlb -o name="lb_002" protocol="http" lb_method="round_robin" network_name="litp" vip_port="12987" member_port="12987" monitors='healthmonitor' vip_floating_ip_pool="public"
+
+let __err_1 --err_type ValidationError --err_message 'Exactly one "tenant-lb" from group "lb_group" must have the property "vip_floating_ip_pool" set.' --err_vpath /deployments/site1/clusters/cloud1/tenants/litp/stacks/stack1/instance_lb_groups/lb_group
+let __err_2 --err_type ValidationError --err_message 'One of the two "tenant-lb" from group "lb_group" must have a "tenant-alarm".' --err_vpath /deployments/site1/clusters/cloud1/tenants/litp/stacks/stack1/instance_lb_groups/lb_group
+
+assertError __err_1 __err_2  --errors_length 2 create_plan
+
+# Create tenant-alarm for the tenant-lb "lb"
+litp create -t tenant-alarm -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/stack1/instance_lb_groups/lb_group/loadbalancers/lb/alarms/alarm1 -o description=alarm_test wait_timeout=800 period=10 evaluation_periods=10
+
+let __err_3 --err_type ValidationError --err_message 'The "tenant-lb" "lb_001" cannot have both a "tenant-alarm" and the property "vip_floating_ip_pool" set at the same time.' --err_vpath /deployments/site1/clusters/cloud1/tenants/litp/stacks/stack1/instance_lb_groups/lb_group/loadbalancers/lb
+
+assertError __err_1 __err_3 --errors_length 2 create_plan
+
+# Remove vip_floating_ip_pool from "lb" and create a tenant-lb "healthlb"
+litp update -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/stack1/instance_lb_groups/lb_group/loadbalancers/lb -d vip_floating_ip_pool
+litp create -t tenant-alarm -p /deployments/site1/clusters/cloud1/tenants/litp/stacks/stack1/instance_lb_groups/lb_group/loadbalancers/healthlb/alarms/alarm2 -o description=alarm_test wait_timeout=800 period=10 evaluation_periods=10
+
+let __err_4 --err_type ValidationError --err_message 'Only one "tenant-alarm" can be created for the group "lb_group".' --err_vpath /deployments/site1/clusters/cloud1/tenants/litp/stacks/stack1/instance_lb_groups/lb_group
+let __err_5 --err_type ValidationError --err_message 'The "tenant-lb" "lb_002" cannot have both a "tenant-alarm" and the property "vip_floating_ip_pool" set at the same time.' --err_vpath /deployments/site1/clusters/cloud1/tenants/litp/stacks/stack1/instance_lb_groups/lb_group/loadbalancers/healthlb
+
+assertError __err_4 __err_5 --errors_length 2 create_plan
